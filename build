@@ -1,0 +1,8 @@
+#!/bin/sh
+
+AS=/usr/bin/as
+OBJCOPY="$HOME/.brew/Cellar/llvm/16.0.6/bin/llvm-objcopy"
+
+mkdir -p out &&
+"$AS" -target i386 -o out/boot.o src/boot.s &&
+"$OBJCOPY" -O binary out/boot.o out/floppy.img
