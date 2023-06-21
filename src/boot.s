@@ -1,7 +1,18 @@
 .org 0
 .code16
-	movw $0x7c0, %ax
+	jmp 1f
+	nop
+.org 0x3e
+1:	cli
+	ljmpw $0x7c0, $2f
+2:	movw %cs, %ax
 	movw %ax, %ds
+	movw %ax, %es
+	movw %ax, %sp
+	xorw %ax, %ax
+	movw %ax, %ss
+	sti
+
 	movw $str, %si
 	call print
 	jmp .
