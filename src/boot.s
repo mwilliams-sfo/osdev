@@ -1,51 +1,59 @@
 .org 0
+
+.set boot_base, 0x7c00
+.set code_seg, gdt_code - gdt
+.set data_seg, gdt_data - gdt
+.set stack_base, 0x200000
+
 .code16
 	jmp 1f
 	nop
 .org 0x3e
 1:	cli
-	ljmpw $0x7c0, $2f
+	ljmpw $0, $boot_base + 2f
 2:	movw %cs, %ax
 	movw %ax, %ds
 	movw %ax, %es
-	movw %ax, %sp
-	xorw %ax, %ax
 	movw %ax, %ss
-	sti
+	movw $0x7c00, %sp
 
-	movb $2, %ah
-	movb $1, %al
-	movb $0, %ch
-	movb $2, %cl
-	movb $0, %dh
-	movb $0, %dl
-	movw $0x200, %bx
-	int $0x13
-	jc 3f
-	movw $0x200, %si
-	call print
+	lgdtw boot_base + gdt_desc
+	movl %cr0, %eax
+	orl $1, %eax
+	movl %eax, %cr0
+	ljmpw $code_seg, $boot_base + 3f
+.code32
+3:	movw $data_seg, %ax
+	movw %ax, %ds
+	movw %ax, %es
+	movw %ax, %fs
+	movw %ax, %gs
+	movw %ax, %ss
+	movl $stack_base, %ebp
+	movl %ebp, %esp
 	jmp .
-3:	movw diskerr, %si
-	call print
-	jmp .
 
-print:	lodsb
-	testb %al, %al
-	jz 1f
-	call putc
-	jmp print
-1:	ret
+.macro gdt_ent base, limit, access, flags
+.word (\limit & 0xffff)
+.word (\base & 0xffff)
+.byte ((\base >> 16) & 0xff)
+.byte \access
+.byte (((\flags << 4) & 0xf0) | ((\limit >> 16) & 0xf))
+.byte ((\base >> 24) & 0xff)
+.endm
 
-putc:	movb $0xe, %ah
-	int $0x10
-	ret
+.align 4
+gdt:
+gdt_ent 0, 0, 0, 0
+gdt_code:
+gdt_ent 0, 0xfffff, 0b10011010, 0b1100
+gdt_data:
+gdt_ent 0, 0xfffff, 0b10010010, 0b1100
+gdt_end:
 
-diskerr:
-.asciz "Disk error"
+gdt_desc:
+.word (gdt_end - gdt - 1)
+.long (0x7c00 + gdt)
 
 .org 510
 .word 0xaa55
-
-.org 512
-.asciz "Welcome to Sector Two."
-.org 1024
