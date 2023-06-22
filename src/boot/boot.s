@@ -16,14 +16,40 @@
 	movw %ax, %es
 	movw %ax, %ss
 	movw $0x7c00, %sp
+	sti
 
+	call enable_a20
+	cli
 	lgdtw boot_base + gdt_desc
 	movl %cr0, %eax
 	orl $1, %eax
 	movl %eax, %cr0
-	ljmpw $code_seg, $boot_base + 3f
+	ljmpw $code_seg, $boot_base + load32
+
+enable_a20:
+	call test_a20
+	jne .
+	ret
+
+test_a20:
+	push %ds
+	movw $0xffff, %ax
+	mov %ax, %ds
+	jmp .
+	movw $0xff, %ax
+	movw %ax, 0x500
+	movw %ds:0x510, %bx
+	cmpw %ax, %bx
+	jne 1f
+	movw $0xff00, %ax
+	movw %ax, 0x500
+	movw %ds:0x510, %bx
+	cmpw %ax, %bx
+	pop %ds
+1:	ret
+
 .code32
-3:	movw $data_seg, %ax
+load32:	movw $data_seg, %ax
 	movw %ax, %ds
 	movw %ax, %es
 	movw %ax, %fs
