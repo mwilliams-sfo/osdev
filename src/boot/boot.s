@@ -67,34 +67,58 @@ init32:
 	movl $1, %eax
 	movl $2, %ecx
 	movl $kernel_base, %edi
-0:	call ata_lba_read
-	incl %eax
-	loop 0b
-	ljmpl $code_sel, $kernel_base
-
-ata_lba_read:
-	push %eax
-	push %ecx
-	push %edx
-	movl %eax, %ecx
-
-	mov $0x3f6, %dx
-0:	inb %dx, %al
+0:	call ata_lba28_read
 	testb $0x21, %al
 	jnz .
+	ljmpl $code_sel, $kernel_base
+
+/*
+eax - logical block address
+ecx  - sector count
+edi - destination address
+
+returns:
+al  - status register
+*/
+ata_lba28_read:
+	call ata_lba28_read_cmd
+	testb $0x21, %al
+	jnz 2f
+1:	call ata_lba28_read_xfer
+	testb $0x21, %al
+	jnz 2f
+	loop 1b
+2:	ret
+
+/*
+eax - logical block address
+cl  - sector count
+
+returns:
+al  - status register
+*/
+ata_lba28_read_cmd:
+	push %ebx
+	push %ecx
+	push %edx
+
+	movl %eax, %ebx
+	movw $0x3f6, %dx
+0:	inb %dx, %al
+	testb $0x21, %al
+	jnz 1f
 	testb $0x80, %al
 	jnz 0b
 
-	movl %ecx, %eax
+	movl %ebx, %eax
 	shrl $24, %eax
-	andb $0x0f, %al
 	orb $0xe0, %al
 	movw $0x1f6, %dx
 	outb %al, %dx
-	movb $1, %al
 	movw $0x1f2, %dx
+	movb %cl, %al
 	outb %al, %dx
-	movl %ecx, %eax
+	movl %ebx, %eax
 	incw %dx
 	outb %al, %dx
 	shrl $8, %eax
@@ -102,19 +126,37 @@ ata_lba_read:
 	outb %al, %dx
 	shrl $8, %eax
 	incw %dx
-	shrl $8, %eax
+	outb %al, %dx
 	movb $0x20, %al
 	incw %dx
 	incw %dx
 	outb %al, %dx
 
 	movw $0x3f6, %dx
-1:	inb %dx, %al
+	inb %dx, %al
+
+1:	pop %edx
+	pop %ecx
+	pop %ebx
+	ret
+
+/*
+edi - destination address
+
+returns
+al  - status register
+edi - updated destination address
+*/
+ata_lba28_read_xfer:
+	push %ecx
+	push %edx
+
+	movw $0x3f6, %dx
+0:	inb %dx, %al
 	testb $0x21, %al
-	jnz .
-	andb $0x88, %al
-	cmpb $8, %al
-	jne 1b
+	jnz 2f
+	testb $8, %al
+	je 0b
 
 	movl $0x100, %ecx
 	movw $0x1f0, %dx
@@ -122,13 +164,14 @@ ata_lba_read:
 	insw
 
 	movw $0x3f6, %dx
-2:	inb %dx, %al
+1:	inb %dx, %al
+	testb $0x21, %al
+	jnz 2f
 	testb $8, %al
-	jnz 2b
+	jnz 1b
 
-	pop %edx
+2:	pop %edx
 	pop %ecx
-	pop %eax
 	ret
 
 .macro gdt_ent base, limit, access, flags
