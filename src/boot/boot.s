@@ -1,15 +1,27 @@
 
 .set boot_base, 0x7c00
+.set boot_magic, 0xaa55
+.set bpb_len, 0x3e
 .set code_sel, gdt_code - gdt
 .set data_sel, gdt_data - gdt
 .set stack_base, 0x200000
 .set kernel_base, 0x100000
+.set kernel_sectors, 16
+
+.set port_ata_hd0_base, 0x1f0
+
+.set ata_stat_err, 1
+.set ata_stat_dq, 8
+.set ata_stat_df, 0x20
+.set ata_stat_bsy, 0x80
+
+.set ata_cmd_read, 0x20
 
 .org 0
 .code16
-	jmp 0x3e
+	jmp bpb_len
 	nop
-.org 0x3e
+.org bpb_len
 	cld
 	cli
 	ljmpw $0, $boot_base + 0f
@@ -17,7 +29,7 @@
 	movw %ax, %ds
 	movw %ax, %es
 	movw %ax, %ss
-	movw $0x7c00, %sp
+	movw $boot_base, %sp
 
 	call test_a20
 	je .
@@ -36,8 +48,7 @@ test_a20:
 	push %bx
 	push %ds
 
-	xorw %ax, %ax
-	notw %ax
+	movw $0xffff, %ax
 	movw %ax, %ds
 
 	movw $0xff, %ax
@@ -67,12 +78,13 @@ init32:
 	movl %ebp, %esp
 
 	movl $1, %eax
-	movl $16, %ecx
+	movl $kernel_sectors, %ecx
 	movl $kernel_base, %edi
 0:	call ata_lba28_read
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz .
-	ljmpl $code_sel, $kernel_base
+	mov $kernel_base, %eax
+	jmp *%eax
 
 /*
 eax - logical block address
@@ -84,10 +96,10 @@ al  - status register
 */
 ata_lba28_read:
 	call ata_lba28_read_cmd
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz 2f
 1:	call ata_lba28_read_xfer
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz 2f
 	loop 1b
 2:	ret
@@ -105,19 +117,19 @@ ata_lba28_read_cmd:
 	push %edx
 
 	movl %eax, %ebx
-	movw $0x3f6, %dx
+	movw $port_ata_hd0_base + 7, %dx
 0:	inb %dx, %al
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz 1f
-	testb $0x80, %al
+	testb $ata_stat_bsy, %al
 	jnz 0b
 
 	movl %ebx, %eax
 	shrl $24, %eax
 	orb $0xe0, %al
-	movw $0x1f6, %dx
+	movw $port_ata_hd0_base + 6, %dx
 	outb %al, %dx
-	movw $0x1f2, %dx
+	movw $port_ata_hd0_base + 2, %dx
 	movb %cl, %al
 	outb %al, %dx
 	movl %ebx, %eax
@@ -129,12 +141,12 @@ ata_lba28_read_cmd:
 	shrl $8, %eax
 	incw %dx
 	outb %al, %dx
-	movb $0x20, %al
+	movb $ata_cmd_read, %al
 	incw %dx
 	incw %dx
 	outb %al, %dx
 
-	movw $0x3f6, %dx
+	movw $port_ata_hd0_base + 7, %dx
 	inb %dx, %al
 
 1:	pop %edx
@@ -153,23 +165,23 @@ ata_lba28_read_xfer:
 	push %ecx
 	push %edx
 
-	movw $0x3f6, %dx
+	movw $port_ata_hd0_base + 7, %dx
 0:	inb %dx, %al
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz 2f
-	testb $8, %al
+	testb $ata_stat_dq, %al
 	je 0b
 
 	movl $0x100, %ecx
-	movw $0x1f0, %dx
+	movw $port_ata_hd0_base, %dx
 	rep
 	insw
 
-	movw $0x3f6, %dx
+	movw $port_ata_hd0_base + 7, %dx
 1:	inb %dx, %al
-	testb $0x21, %al
+	testb $(ata_stat_err | ata_stat_df), %al
 	jnz 2f
-	testb $8, %al
+	testb $ata_stat_dq, %al
 	jnz 1b
 
 2:	pop %edx
@@ -199,4 +211,4 @@ gdt_desc:
 .long (boot_base + gdt)
 
 .org 0x1fe
-.word 0xaa55
+.word boot_magic
