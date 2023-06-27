@@ -19,9 +19,11 @@
 
 .org 0
 .code16
-	jmp bpb_len
+	jmp init16
 	nop
+
 .org bpb_len
+init16:
 	cld
 	cli
 	ljmpw $0, $boot_base + 0f

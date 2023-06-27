@@ -1,7 +1,5 @@
 
-.org 0
-load32:
-.globl load32
-	jmp .
-
+	call kernel_start
+	hlt
 .align 16
+kernel_start:
