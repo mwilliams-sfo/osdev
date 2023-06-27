@@ -4,4 +4,4 @@ load32:
 .globl load32
 	jmp .
 
-.org 0x400
+.org 0x2000

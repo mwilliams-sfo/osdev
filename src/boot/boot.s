@@ -7,20 +7,18 @@
 
 .org 0
 .code16
-	jmp 0f
+	jmp 0x3e
 	nop
 .org 0x3e
-0:	cld
+	cld
 	cli
-	ljmpw $0, $boot_base + 1f
-1:	movw %cs, %ax
+	ljmpw $0, $boot_base + 0f
+0:	movw %cs, %ax
 	movw %ax, %ds
 	movw %ax, %es
 	movw %ax, %ss
 	movw $0x7c00, %sp
-	sti
 
-	cli
 	call enable_a20
 	lgdtw boot_base + gdt_desc
 	movl %cr0, %eax
@@ -65,7 +63,7 @@ init32:
 	movl %ebp, %esp
 
 	movl $1, %eax
-	movl $2, %ecx
+	movl $16, %ecx
 	movl $kernel_base, %edi
 0:	call ata_lba28_read
 	testb $0x21, %al
