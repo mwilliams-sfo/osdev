@@ -19,33 +19,37 @@
 	movw %ax, %ss
 	movw $0x7c00, %sp
 
-	call enable_a20
+	call test_a20
+	je .
 	lgdtw boot_base + gdt_desc
 	movl %cr0, %eax
 	orl $1, %eax
 	movl %eax, %cr0
 	ljmpw $code_sel, $boot_base + init32
 
-enable_a20:
-	call test_a20
-	je .
-	ret
-
+/*
+returns:
+zero flag set if A20 disabled
+*/
 test_a20:
 	push %ax
 	push %bx
 	push %ds
-	movw $0xffff, %ax
-	mov %ax, %ds
+
+	xorw %ax, %ax
+	notw %ax
+	movw %ax, %ds
+
 	movw $0xff, %ax
 	movw %ax, 0x500
 	movw %ds:0x510, %bx
-	cmpw %ax, %bx
+	cmpw %bx, %ax
 	jne 0f
-	movw $0xff00, %ax
+	shlw $8, %ax
 	movw %ax, 0x500
 	movw %ds:0x510, %bx
-	cmpw %ax, %bx
+	cmpw %bx, %ax
+
 0:	pop %ds
 	pop %bx
 	pop %ax
@@ -141,7 +145,7 @@ ata_lba28_read_cmd:
 /*
 edi - destination address
 
-returns
+returns:
 al  - status register
 edi - updated destination address
 */
