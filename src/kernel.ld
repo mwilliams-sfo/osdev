@@ -1,18 +1,25 @@
 
-ENTRY(load32)
+ENTRY(kernel_start)
 SECTIONS {
-	. = 0;
-	.text ALIGN(4096): {
+	. = 1M;
+	.text : {
 		*(.text)
+		*(.text.*)
+		. = ALIGN(4096);
 	}
-	.rodata ALIGN(4096): {
+	.rodata : {
 		*(.rodata)
+		*(.rodata.*)
+		. = ALIGN(4096);
 	}
-	.data ALIGN(4096): {
+	.data : {
 		*(.data)
+		*(.data.*)
+		. = ALIGN(4096);
 	}
-	.bss ALIGN(4096): {
+	.bss : {
 		*(COMMON)
 		*(.bss)
+		*(.bss.*)
 	}
 }

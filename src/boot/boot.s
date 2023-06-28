@@ -86,7 +86,8 @@ init32:
 	testb $(ata_stat_err | ata_stat_df), %al
 	jnz .
 	mov $kernel_base, %eax
-	jmp *%eax
+	call *%eax
+	jmp .
 
 /*
 eax - logical block address
