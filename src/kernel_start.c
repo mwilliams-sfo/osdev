@@ -1,10 +1,10 @@
 
-#include "idt.h"
+#include "intr.h"
 
 void kernel_main(void);
 
 void kernel_start(void)
 {
-	idt_init();
+	intr_init();
 	kernel_main();
 }

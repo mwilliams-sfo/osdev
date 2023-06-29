@@ -6,7 +6,7 @@
 .set data_sel, gdt_data - gdt
 .set stack_base, 0x200000
 .set kernel_base, 0x100000
-.set kernel_sectors, 16
+.set kernel_sectors, 255
 
 .set port_ata_hd0_base, 0x1f0
 
