@@ -55,7 +55,7 @@ static void tputs(const char * s, int color)
 	}
 }
 
-void kernel_start()
+void kernel_main()
 {
 	tinit();
 	tputs("Kernel started\n", 15);

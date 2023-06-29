@@ -24,7 +24,7 @@ out/boot.bin: out/boot.o
 out/kernel.bin: src/kernel.ld out/kernel.all.o
 	$(LD) -static --oformat=binary -T src/kernel.ld -o $@ out/kernel.all.o
 
-out/kernel.all.o: out/kernel_start.o
+out/kernel.all.o: out/kernel_main.o
 	$(LD) -g -relocatable -o $@ $^
 
 out/boot.o: src/boot/boot.s
