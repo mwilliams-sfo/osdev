@@ -1,5 +1,5 @@
 
-ENTRY(kernel_main)
+ENTRY(kernel_start)
 SECTIONS {
 	. = 1M;
 	.text : {

@@ -10,6 +10,9 @@ CFLAGS+= -nostdlib -nodefaultlibs
 LD=$(HOME)/.brew/Cellar/llvm/16.0.6/bin/ld.lld
 OBJCOPY=$(HOME)/.brew/Cellar/llvm/16.0.6/bin/llvm-objcopy
 
+KERNEL_FILES=kernel_start.c kernel_main.c idt.c
+KERNEL_ASFILES=idt.s
+
 all: out/disk.img
 
 clean:
@@ -24,17 +27,17 @@ out/boot.bin: out/boot.o
 out/kernel.bin: src/kernel.ld out/kernel.all.o
 	$(LD) -static --oformat=binary -T src/kernel.ld -o $@ out/kernel.all.o
 
-out/kernel.all.o: out/kernel_main.o
+out/kernel.all.o: $(patsubst %.c,out/%.o,$(KERNEL_FILES)) $(patsubst %.s,out/%.asm.o,$(KERNEL_ASFILES))
 	$(LD) -g -relocatable -o $@ $^
 
 out/boot.o: src/boot/boot.s
 	mkdir -p out
 	$(AS) $(ASFLAGS) -o $@ $^
 
-out/kernel.s.o: src/kernel.s
-	mkdir -p out
-	$(AS) $(ASFLAGS) -o $@ $^
-
 out/%.o: src/%.c
 	mkdir -p out
 	$(CC) -c $(CFLAGS) -o $@ $^
+
+out/%.asm.o: src/%.s
+	mkdir -p out
+	$(AS) -c $(ASFLAGS) -o $@ $^
