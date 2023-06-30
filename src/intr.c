@@ -1,11 +1,11 @@
 
 #include "idt.h"
 #include "io.h"
-#include "kernel.h"
+#include "term.h"
 
 #include "intr.h"
 
-void (*intr_handler_table[256])() = { 0 };
+void (*intr_handler_table[256])();
 
 static void intr_handler_pic1_ignore(int intnum) {
 	outb(0x20, 0x20);

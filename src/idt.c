@@ -1,17 +1,13 @@
 
 #include "config.h"
-#include "kernel.h"
 
 #include "idt.h"
 
-static struct idt_entry idt[256] = { 0 };
-
-static const struct idt_desc idtr = { sizeof(idt) - 1, idt };
+static struct idt_entry idt[256];
 
 void idt_load(const struct idt_desc * desc);
 
-static void idt_set(int index, void (*addr)())
-{
+static void idt_set(int index, void (*addr)()) {
 	uint32_t offset = (uint32_t) addr;
 	idt[index] = (struct idt_entry) {
 		.offset_low = offset,
@@ -23,11 +19,13 @@ static void idt_set(int index, void (*addr)())
 	};
 }
 
-void idt_init(void)
-{
+void idt_init(void) {
 	extern void (*intr_vector_table[])();
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < sizeof idt / sizeof idt[0]; i++) {
 		idt_set(i, intr_vector_table[i]);
 	}
-	idt_load(&idtr);
+	idt_load(&(struct idt_desc) {
+		.size = sizeof idt - 1,
+		.offset = idt
+	});
 }
