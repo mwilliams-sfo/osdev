@@ -12,7 +12,7 @@ static void intr_handler_pic1_ignore(int intnum) {
 }
 
 static void intr_handler_kbd(int intnum) {
-	print("Key pressed\n");
+	print("\rKey pressed\n");
 	outb(0x20, 0x20);
 }
 
