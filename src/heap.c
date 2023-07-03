@@ -1,9 +1,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "config.h"
 
 #define HEAP_SIZE (100U << 20)
-#define HEAP_BLOCK_SIZE 4096U
+#define HEAP_BLOCK_SIZE PAGE_SIZE
 #define HEAP_BLOCK_TYPE_FREE 0
 #define HEAP_BLOCK_TYPE_USED 1
 #define HEAP_TABLE_SIZE (HEAP_SIZE / HEAP_BLOCK_SIZE)
@@ -43,6 +44,16 @@ void * heap_alloc(unsigned size) {
 	}
 	(entry - 1)->has_next = 0;
 	return (void *) ptr;
+}
+
+void * heap_calloc(unsigned size) {
+	void * ptr = heap_alloc(size);
+	if (!ptr) return NULL;
+	int * ip = ptr;
+	while ((unsigned) ip < (unsigned) ptr + size) {
+		*ip++ = 0;
+	}
+	return ptr;
 }
 
 void heap_free(void * ptr) {

@@ -9,7 +9,7 @@ void kernel_main(void) {
 
 	intr_init();
 	term_init();
-	print("Kernel started\n");
+	print("Starting kernel\n");
 
 	s = heap_alloc(6);
 	if (!s) {
