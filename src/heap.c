@@ -45,12 +45,14 @@ void * heap_alloc(unsigned size) {
 void heap_free(void * ptr) {
 	int i;
 
+	// Sanity-check the address.
 	if (ptr < (void *) heap_region) return;
 	if ((unsigned) ptr != ((unsigned) ptr & (HEAP_BLOCK_SIZE - 1))) return;
 	i = (unsigned) ptr >> 12;
 	if (i >= sizeof heap_table / sizeof heap_table[0]) return;
 	if ((heap_table[i] & HEAP_BLOCK_FLAG_FIRST) == 0) return;
 
+	// Unallocate blocks.
 	while (1) {
 		if (i == sizeof heap_table / sizeof heap_table[0]) return;
 		if ((heap_table[i] & HEAP_BLOCK_FLAG_HASN) == 0) break;
