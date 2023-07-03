@@ -4,7 +4,7 @@
 #include "intr.h"
 #include "term.h"
 
-void kernel_main() {
+void kernel_main(void) {
 	char * s = NULL;
 
 	intr_init();

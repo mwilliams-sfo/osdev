@@ -11,8 +11,9 @@ static int terminal_row = 0;
 static int terminal_col = 0;
 
 void term_init(void) {
+	uint16_t fill = (7 << 8) | ' ';
 	for (int i = 0; i < TEXT_SCREEN_WIDTH * TEXT_SCREEN_HEIGHT; i++) {
-		vid_mem[i] = (7 << 8) | ' ';
+		vid_mem[i] = fill;
 	}
 }
 
@@ -30,12 +31,10 @@ static void tputc(char c, int color) {
 		terminal_row--;
 	}
 	switch (c) {
+	case '\n':
+		terminal_row++;
 	case '\r':
 		terminal_col = 0;
-		return;
-	case '\n':
-		terminal_col = 0;
-		terminal_row++;
 		return;
 	}
 	tplot(terminal_col, terminal_row, c, color);
