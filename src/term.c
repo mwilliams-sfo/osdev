@@ -18,21 +18,31 @@ void term_init(void) {
 }
 
 static void tplot(int x, int y, char c, int color) {
-	if (x < 0 || TEXT_SCREEN_WIDTH <= x || y < 0 || TEXT_SCREEN_HEIGHT <= y)
-		return;
+	if (x < 0 || TEXT_SCREEN_WIDTH <= x) return;
+	if (y < 0 || TEXT_SCREEN_HEIGHT <= y) return;
+	if (color & ~0xff) return;
 	vid_mem[y * TEXT_SCREEN_WIDTH + x] = (color << 8) | c;
 }
 
-static void tputc(char c, int color) {
-	if (terminal_row == TEXT_SCREEN_HEIGHT) {
-		for (int i = 0; i < (TEXT_SCREEN_HEIGHT - 1) * TEXT_SCREEN_WIDTH; i++) {
+static void tnewline() {
+	if (terminal_row < TEXT_SCREEN_HEIGHT) {
+		terminal_row++;
+	} else {
+		int i;
+		for (i = 0; i < (TEXT_SCREEN_HEIGHT - 1) * TEXT_SCREEN_WIDTH; i++) {
 			vid_mem[i] = vid_mem[i + TEXT_SCREEN_WIDTH];
 		}
-		terminal_row--;
+		uint16_t fill = (7 << 8) | ' ';
+		for (; i < TEXT_SCREEN_HEIGHT * TEXT_SCREEN_WIDTH; i++) {
+			vid_mem[i] = fill;
+		}
 	}
+}
+
+static void tputc(char c, int color) {
 	switch (c) {
 	case '\n':
-		terminal_row++;
+		tnewline();
 	case '\r':
 		terminal_col = 0;
 		return;
@@ -40,8 +50,8 @@ static void tputc(char c, int color) {
 	tplot(terminal_col, terminal_row, c, color);
 	terminal_col++;
 	if (terminal_col == TEXT_SCREEN_WIDTH) {
+		tnewline();
 		terminal_col = 0;
-		terminal_row++;
 	}
 }
 
