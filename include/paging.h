@@ -1,41 +1,27 @@
 #ifndef PAGING_H
 #define PAGING_H
 
+#include <stdint.h>
 #include "config.h"
 
-struct page_directory_entry {
-	unsigned present: 1;
-	unsigned read_write: 1;
-	unsigned user_supervisor: 1;
-	unsigned write_through: 1;
-	unsigned cache_disable: 1;
-	unsigned accessed: 1;
-	unsigned: 1;
-	unsigned page_size: 1;
-	unsigned: 4;
-	unsigned address: 20;
-} __attribute__((packed));
+#define PAGE_TABLE_FLAGS_PRESENT 1
+#define PAGE_TABLE_FLAGS_WRITABLE 2
+#define PAGE_TABLE_FLAGS_USER 4
+#define PAGE_TABLE_FLAGS_WRITE_THROUGH 8
+#define PAGE_TABLE_FLAGS_CACHE_DISABLE 0x10
+#define PAGE_TABLE_FLAGS_ACCESSED 0x20
+#define PAGE_TABLE_FLAGS_DIRTY 0x40
+#define PAGE_TABLE_ADDRESS_MASK (~(PAGE_SIZE - 1))
 
-struct page_table_entry {
-	unsigned present: 1;
-	unsigned read_write: 1;
-	unsigned user_supervisor: 1;
-	unsigned write_through: 1;
-	unsigned cache_disable: 1;
-	unsigned accessed: 1;
-	unsigned dirty: 1;
-	unsigned page_attribute: 1;
-	unsigned global: 1;
-	unsigned: 3;
-	unsigned address: 20;
-} __attribute__((packed));
+typedef uint32_t page_directory_entry;
+typedef uint32_t page_table_entry;
 
 struct paging_space {
-	struct page_directory_entry * directory;
-	struct page_table_entry ** tables;
+	page_directory_entry * directory;
+	page_table_entry ** tables;
 };
 
 int paging_init(void);
-int paging_map_address(void * addr, const struct page_table_entry * mapping);
+int paging_map_address(void * vaddr, void * paddr);
 
 #endif

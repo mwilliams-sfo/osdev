@@ -21,10 +21,7 @@ void kernel_main(void) {
 
 	page = heap_calloc(PAGE_SIZE);
 	if (page) {
-		struct page_table_entry mapping = { 0 };
-		*(unsigned *) &mapping = 7;
-		mapping.address = (unsigned) page >> 12;
-		n = paging_map_address((void *) 0x1000, &mapping);
+		n = paging_map_address((void *) 0x1000, page);
 		page_mapped = (n == 0);
 	}
 	if (!page_mapped) {
