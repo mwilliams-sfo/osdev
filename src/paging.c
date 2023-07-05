@@ -9,10 +9,12 @@
 #define PAGE_DIRECTORY_SIZE (PAGE_SIZE / sizeof(struct page_directory_entry))
 #define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(struct page_table_entry))
 
+static struct paging_space * space;
+
 void paging_set_directory(struct page_directory_entry * directory);
 void paging_enable();
 
-struct paging_space * paging_create_space(uint8_t flags) {
+static struct paging_space * paging_create_space(uint8_t flags) {
 	struct paging_space * space = heap_calloc(sizeof(struct paging_space));
 	if (!space) return NULL;
 	space->directory = heap_calloc(PAGE_SIZE);
@@ -51,12 +53,29 @@ err:
 	return NULL;
 }
 
-struct paging_space * paging_init(void) {
-	struct paging_space * space = paging_create_space(7);
-	if (!space) return NULL;
+static int paging_find_page(void * addr, int * directory_index, int * table_index) {
+	int page = (unsigned) addr >> 12;
+	*directory_index = page / PAGE_TABLE_SIZE;
+	*table_index = page % PAGE_TABLE_SIZE;
+	return 0;
+}
+
+int paging_init(void) {
+	space = paging_create_space(7);
+	if (!space) return -1;
 	paging_set_directory(space->directory);
 	paging_enable();
 
-	return space;
+	return 0;
 }
 
+int paging_map_address(void * addr, const struct page_table_entry * mapping) {
+	int dir_index, table_index;
+	int n = paging_find_page(addr, &dir_index, &table_index);
+	if (n < 0) return n;
+	if (!space) return -1;
+	struct page_directory_entry * dir_entry = &space->directory[dir_index];
+	struct page_table_entry * table = (struct page_table_entry *) (dir_entry->address << 12);
+	table[table_index] = *mapping;
+	return 0;
+}

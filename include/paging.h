@@ -35,6 +35,7 @@ struct paging_space {
 	struct page_table_entry ** tables;
 };
 
-struct paging_space * paging_init(void);
+int paging_init(void);
+int paging_map_address(void * addr, const struct page_table_entry * mapping);
 
 #endif

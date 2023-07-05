@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "config.h"
+#include "memory.h"
 
 #define HEAP_SIZE (100U << 20)
 #define HEAP_BLOCK_SIZE PAGE_SIZE
@@ -49,11 +50,7 @@ void * heap_alloc(unsigned size) {
 void * heap_calloc(unsigned size) {
 	void * ptr = heap_alloc(size);
 	if (!ptr) return NULL;
-	int * ip = ptr;
-	while ((unsigned) ip < (unsigned) ptr + size) {
-		*ip++ = 0;
-	}
-	return ptr;
+	return memset(ptr, 0, size);
 }
 
 void heap_free(void * ptr) {
