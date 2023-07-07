@@ -1,5 +1,6 @@
 
 #include <stddef.h>
+#include "disk.h"
 #include "heap.h"
 #include "intr.h"
 #include "paging.h"
@@ -7,8 +8,6 @@
 
 void kernel_main(void) {
 	int n;
-	void * page = NULL;
-	int page_mapped = 0;
 
 	term_init();
 	print("Starting kernel\n");
@@ -16,27 +15,19 @@ void kernel_main(void) {
 	n = paging_init();
 	if (n < 0) {
 		print("Paging initialization failed\n");
-		goto err;
+		return;
 	}
-
-	page = heap_calloc(PAGE_SIZE);
-	if (page) {
-		n = paging_map_address((void *) 0x1000, page);
-		page_mapped = (n == 0);
+	char buf[512];
+	n = disk_read_sectors(0, 1, buf);
+	if (n != 1) {
+		print("Disk read failed\n");
+		return;
 	}
-	if (!page_mapped) {
-		print("Page mapping failed\n");
-		goto err;
+	if (buf[510] != (char) 0x55 || buf[511] != (char) 0xaa) {
+		while (1);
+		print("Boot signature not found\n");
+		return;
 	}
-	*(unsigned *) page = 0x1234;
-	if (*(unsigned *) 0x1000 != 0x1234) {
-		print("Page is not mapped correctly\n");
-		goto err;
-	}
-	print("Memory mapping verified\n");
 
 	intr_init();
-
-err:
-	if (page && !page_mapped) heap_free(page);
 }
