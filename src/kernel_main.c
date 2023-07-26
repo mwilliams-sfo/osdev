@@ -17,17 +17,21 @@ void kernel_main(void) {
 		print("Paging initialization failed\n");
 		return;
 	}
-	char buf[512];
+	print("Reading boot sector\n");
+	uint16_t * buf = heap_calloc(512);
 	n = disk_read_sectors(0, 1, buf);
 	if (n != 1) {
 		print("Disk read failed\n");
-		return;
+		goto err;
 	}
-	if (buf[510] != (char) 0x55 || buf[511] != (char) 0xaa) {
-		while (1);
+	if (buf[255] != (uint16_t) 0xaa55) {
 		print("Boot signature not found\n");
-		return;
+		goto err;
 	}
 
 	intr_init();
+	print("Kernel initialized\n");
+
+err:
+	heap_free(buf);
 }
