@@ -25,7 +25,7 @@ static void tplot(int x, int y, char c, int color) {
 }
 
 static void tnewline() {
-	if (terminal_row < TEXT_SCREEN_HEIGHT) {
+	if (terminal_row + 1 < TEXT_SCREEN_HEIGHT) {
 		terminal_row++;
 	} else {
 		int i;
