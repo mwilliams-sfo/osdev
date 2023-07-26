@@ -15,14 +15,12 @@ intr_dispatch:
 	call *%ebx
 	addl $4, %esp
 0:	popal
-	sti
 	iret
 
 .macro isr_thunk n
 .type intr_vector_\n,@function
 .align 4
 intr_vector_\n:
-	cli
 	pushal
 	movl $\n, %eax
 	jmp intr_dispatch
