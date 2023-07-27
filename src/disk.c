@@ -35,14 +35,22 @@ int disk_read_sectors(int lba, int count, void * buf) {
 	outb(PORT_ATA_HD0_BASE + ATA_ADDR_LBA_MID, lba >> 8);
 	outb(PORT_ATA_HD0_BASE + ATA_ADDR_LBA_HIGH, lba >> 16);
 	outb(PORT_ATA_HD0_BASE + ATA_ADDR_COMMAND, ATA_CMD_READ_SECTOR);
+	// Wait for drive selection.
+	for (int i = 0; i < 14; i++) {
+		inpb(PORT_ATA_HD0_BASE + ATA_ADDR_STATUS);
+	}
 
 	int i = 0;
 	uint16_t * ptr = buf;
 	for (i = 0; i < count; i++) {
-		if (!disk_await_status(ATA_STATUS_DRQ, ATA_STATUS_DRQ)) return i;
+		if (!disk_await_status(ATA_STATUS_DRQ, ATA_STATUS_DRQ)) break;
 		for (int j = 0; j < 256; j++) {
 			*ptr++ = inpw(PORT_ATA_HD0_BASE);
 		}
+
+		// Check for an error before moving on.
+		uint8_t stat = inpb(PORT_ATA_HD0_BASE + ATA_ADDR_STATUS);
+		if (stat & (ATA_STATUS_ERR | ATA_STATUS_DF)) break;
 	}
 	return i;
 }
