@@ -1,0 +1,4 @@
+target create "out/kernel.all.o"
+gdb-remote localhost:1234
+breakpoint set -a 0x100000
+continue
