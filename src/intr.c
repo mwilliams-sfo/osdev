@@ -19,43 +19,56 @@ void (*intr_handler_table[256])();
 #define I8259_PIC_ICW1_SNGL 2
 #define I8259_PIC_ICW4_8086 1
 
-static void intr_handler_pic1_ignore(int intnum) {
+#define INTNUM_PIC1_BASE 0x20
+#define INTNUM_PIC2_BASE 0x28
+
+static void intr_pic_end(int intnum) {
+	if (intnum >= INTNUM_PIC2_BASE) {
+		outb(PORT_PIC2_BASE + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_EOI);
+	}
 	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_EOI);
 }
 
 static void intr_handler_kbd(int intnum) {
 	print("\rKey pressed\n");
-	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_EOI);
+	intr_pic_end(intnum);
 }
 
-static void intr_pic_init(uint16_t port_base, const uint8_t * icw) {
-	uint8_t mask = inpb(port_base + I8259_PIC_ADDR_DATA);
-	outb(port_base + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_INIT | (icw[0] & 0xf));
-	outb(port_base + I8259_PIC_ADDR_DATA, icw[1]);
-	if ((icw[0] & I8259_PIC_ICW1_SNGL) == 0) {
-		outb(port_base + I8259_PIC_ADDR_DATA, icw[2]);
+static void intr_pic_init(const uint8_t * pic1_icw, const uint8_t * pic2_icw) {
+	uint8_t mask1 = inpb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA);
+	uint8_t mask2 = inpb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA);
+
+	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_INIT | (pic1_icw[0] & 0xf));
+	outb(PORT_PIC2_BASE + I8259_PIC_ADDR_COMMAND, I8259_PIC_CMD_INIT | (pic2_icw[0] & 0xf));
+	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA, pic1_icw[1]);
+	outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, pic2_icw[1]);
+	if (!(pic1_icw[0] & I8259_PIC_ICW1_SNGL)) {
+		outb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA, pic1_icw[2]);
 	}
-	if (icw[0] & I8259_PIC_ICW1_IC4) {
-		outb(port_base + I8259_PIC_ADDR_DATA, icw[3]);
+	if (!(pic2_icw[0] & I8259_PIC_ICW1_SNGL)) {
+		outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, pic2_icw[2]);
 	}
-	outb(port_base + I8259_PIC_ADDR_DATA, mask);
+	if (pic1_icw[0] & I8259_PIC_ICW1_IC4) {
+		outb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA, pic1_icw[3]);
+	}
+	if (pic2_icw[0] & I8259_PIC_ICW1_IC4) {
+		outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, pic2_icw[3]);
+	}
+
+	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA, mask1);
+	outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, mask2);
 }
 
 void intr_init(void) {
 	idt_init();
 
-	for (int i = 0; i < 8; i++) {
-		intr_handler_table[0x20 + i] = intr_handler_pic1_ignore;
+	for (int i = 0; i < 16; i++) {
+		intr_handler_table[0x20 + i] = intr_pic_end;
 	}
 	intr_handler_table[0x21] = intr_handler_kbd;
-	outb(PORT_PIC1_BASE + I8259_PIC_ADDR_DATA, 0);
-	outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, 0xff);
-	uint8_t icw[] = {
-		I8259_PIC_ICW1_SNGL | I8259_PIC_ICW1_IC4,
-		0x20,
-		I8259_PIC_ICW4_8086
-	};
-	intr_pic_init(PORT_PIC1_BASE, icw);
+	uint8_t pic1_icw[] = { I8259_PIC_ICW1_IC4, INTNUM_PIC1_BASE, 2, I8259_PIC_ICW4_8086 };
+	uint8_t pic2_icw[] = { I8259_PIC_ICW1_IC4, INTNUM_PIC2_BASE, 4, I8259_PIC_ICW4_8086 };
+	intr_pic_init(pic1_icw, pic2_icw);
 
 	intr_enable();
 }
