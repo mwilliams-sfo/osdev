@@ -25,15 +25,15 @@ static void kernel_main(void) {
 	intr_init();
 	print("Kernel initialized\n");
 
-	struct path * path = path_parse("/one/two/three");
-	if (!path) {
-		print("Path parsing failed\n");
+	struct disk_stream stream = { 0 };
+	disk_stream_seek(&stream, 510);
+	uint16_t magic;
+	int n = disk_stream_read(&stream, &magic, sizeof magic);
+	if (n < sizeof magic) {
+		print("Failed to read boot sector\n");
 		return;
 	}
-	for (const struct path_part * part = path->root; part; part = part->next) {
-		print("Path segment: ");
-		print(part->name);
-		print("\n");
+	if (magic != 0xaa55) {
+		print("Boot sector identifier has wrong value\n");
 	}
-	path_free(path);
 }

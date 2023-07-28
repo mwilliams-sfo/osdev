@@ -32,7 +32,9 @@ static struct paging_space * paging_create_space(uint8_t flags) {
 		for (int j = 0; j < PAGE_TABLE_SIZE; j++) {
 			table[j] = (npage++) << 12 | (flags & ~PAGE_TABLE_ADDRESS_MASK);
 		}
-		*dir_entry = ((unsigned) table & PAGE_TABLE_ADDRESS_MASK) | (flags & ~PAGE_TABLE_ADDRESS_MASK);
+		*dir_entry =
+			((unsigned) table & PAGE_TABLE_ADDRESS_MASK) |
+			(flags & ~PAGE_TABLE_ADDRESS_MASK);
 	}
 	return space;
 

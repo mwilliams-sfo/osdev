@@ -1,4 +1,3 @@
-
 #include <stddef.h>
 
 void * memset(void * buf, int c, size_t len) {
@@ -7,6 +6,13 @@ void * memset(void * buf, int c, size_t len) {
 		*p++ = c;
 	}
 	return buf;
+}
+
+void * memcpy(void * restrict dst, const void * restrict src, size_t len) {
+	for (int i = 0; i < len; i++) {
+		*((char *) dst + i) = *((const char *) src + i);
+	}
+	return dst;
 }
 
 size_t strlen(const char * s) {

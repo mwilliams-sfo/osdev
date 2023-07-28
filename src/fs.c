@@ -5,7 +5,7 @@
 
 #include "fs.h"
 
-void path_free(struct path * path) {
+void path_destroy(struct path * path) {
 	if (!path) return;
 	for (struct path_part * part = path->root; part;) {
 		struct path_part * next = part->next;
@@ -45,6 +45,6 @@ struct path * path_parse(const char * s) {
 	return path;
 
 err:
-	path_free(path);
+	path_destroy(path);
 	return NULL;
 }

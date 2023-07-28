@@ -10,7 +10,7 @@ struct path {
 	struct path_part * root;
 };
 
-void path_free(struct path * path);
+void path_destroy(struct path * path);
 struct path * path_parse(const char * s);
 
 #endif
