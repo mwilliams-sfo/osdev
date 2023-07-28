@@ -15,16 +15,13 @@ KERNEL_SRC=kernel_main.c term.c idt.c intr.c string.c heap.c paging.c disk.c fs.
 KERNEL_ASM=idt.s intr.s io.s paging.s
 KERNEL_OBJ=$(patsubst %.c,out/%.o,$(KERNEL_SRC)) $(patsubst %.s,out/%.s.o,$(KERNEL_ASM))
 
-all: out/disk.img out/kernel.dbg
+all: out/disk.img
 
 clean:
 	rm -rf out
 
 out/disk.img: out/boot.bin out/kernel.bin
 	cat $^ /dev/zero | head -c 131072 > $@
-
-out/kernel.dbg: out/kernel
-	$(OBJCOPY) --only-keep-debug $^ $@
 
 out/boot.bin: out/boot.s.o
 	$(OBJCOPY) -O binary $^ $@
