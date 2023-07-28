@@ -3,9 +3,8 @@
 
 void * memset(void * buf, int c, size_t len) {
 	char * p = buf;
-	while (len > 0) {
+	for (; len > 0; len--) {
 		*p++ = c;
-		len--;
 	}
 	return buf;
 }

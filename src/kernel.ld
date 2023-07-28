@@ -1,25 +1,27 @@
 
-ENTRY(kernel_main)
+MEMORY {
+	KERNEL : ORIGIN = 1M, LENGTH = 15M
+}
+
 SECTIONS {
-	. = 1M;
 	.text : {
 		*(.text)
 		*(.text.*)
-		. = ALIGN(4096);
-	}
+		. = ALIGN(4K);
+	} > KERNEL
 	.rodata : {
 		*(.rodata)
 		*(.rodata.*)
-		. = ALIGN(4096);
-	}
+		. = ALIGN(4K);
+	} > KERNEL
 	.data : {
 		*(.data)
 		*(.data.*)
-		. = ALIGN(4096);
-	}
+		. = ALIGN(4K);
+	} > KERNEL
 	.bss : {
 		*(COMMON)
 		*(.bss)
 		*(.bss.*)
-	}
+	} > KERNEL
 }

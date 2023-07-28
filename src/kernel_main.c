@@ -7,7 +7,13 @@
 #include "paging.h"
 #include "term.h"
 
-void kernel_main(void) {
+static void kernel_main(void);
+
+void _start() {
+	kernel_main();
+}
+
+static void kernel_main(void) {
 	term_init();
 	print("Starting kernel\n");
 
