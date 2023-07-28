@@ -1,5 +1,5 @@
-#ifndef PAGING_H
-#define PAGING_H
+#ifndef OS_PAGING_H
+#define OS_PAGING_H
 
 #include <stdint.h>
 #include "config.h"
