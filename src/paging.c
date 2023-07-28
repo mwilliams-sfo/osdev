@@ -58,12 +58,12 @@ static int paging_find_page(void * addr, int * directory_index, int * table_inde
 }
 
 int paging_init(void) {
-	uint8_t flags = PAGE_TABLE_FLAGS_PRESENT | PAGE_TABLE_FLAGS_WRITABLE | PAGE_TABLE_FLAGS_USER;
+	uint8_t flags = PAGE_TABLE_FLAGS_PRESENT | PAGE_TABLE_FLAGS_WRITABLE |
+		PAGE_TABLE_FLAGS_USER;
 	space = paging_create_space(flags);
 	if (!space) return -1;
 	paging_set_directory(space->directory);
 	paging_enable();
-
 	return 0;
 }
 

@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "config.h"
-#include "memory.h"
+#include "string.h"
 
 #define HEAP_SIZE (100U << 20)
 #define HEAP_BLOCK_SIZE PAGE_SIZE

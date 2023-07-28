@@ -10,7 +10,7 @@ CFLAGS+= -nostdlib -nodefaultlibs
 LD=$(HOME)/.brew/Cellar/llvm/16.0.6/bin/ld.lld
 OBJCOPY=$(HOME)/.brew/Cellar/llvm/16.0.6/bin/llvm-objcopy
 
-KERNEL_FILES=kernel_main.c term.c idt.c intr.c memory.c heap.c paging.c disk.c
+KERNEL_FILES=kernel_main.c term.c idt.c intr.c string.c heap.c paging.c disk.c fs.c
 KERNEL_ASFILES=idt.s intr.s io.s paging.s
 
 all: out/disk.img
