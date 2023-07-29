@@ -12,7 +12,7 @@ LDFLAGS=-m elf_i386
 OBJCOPY=$(HOME)/.brew/Cellar/llvm/16.0.6/bin/llvm-objcopy
 
 KERNEL_SRC=kernel_main.c term.c idt.c intr.c string.c heap.c paging.c disk.c fs.c
-KERNEL_ASM=idt.s intr.s io.s paging.s
+KERNEL_ASM=intr.s io.s
 KERNEL_OBJ=$(patsubst %.c,out/%.o,$(KERNEL_SRC)) $(patsubst %.s,out/%.s.o,$(KERNEL_ASM))
 
 all: out/disk.img

@@ -11,9 +11,6 @@
 
 static struct paging_space * space;
 
-void paging_set_directory(const page_directory_entry * directory);
-void paging_enable();
-
 static struct paging_space * paging_create_space(uint8_t flags) {
 	struct paging_space * space = heap_calloc(sizeof(struct paging_space));
 	if (!space) return NULL;
@@ -57,6 +54,21 @@ static int paging_find_page(void * addr, int * directory_index, int * table_inde
 	*directory_index = page / PAGE_TABLE_SIZE;
 	*table_index = page % PAGE_TABLE_SIZE;
 	return 0;
+}
+
+static void paging_set_directory(const page_directory_entry * dir) {
+	asm("movl %0, %%cr3" : : "r"(dir) : "%cr3");
+}
+
+static void paging_enable() {
+	asm(
+		"movl %%cr0, %%ebx;"
+		"orl $0x80000000, %%ebx;"
+		"movl %%ebx, %%cr0;"
+		:
+		:
+		: "%ebx", "%cr0"
+	);
 }
 
 int paging_init(void) {

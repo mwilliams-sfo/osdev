@@ -59,6 +59,10 @@ static void intr_pic_init(const uint8_t * pic1_icw, const uint8_t * pic2_icw) {
 	outb(PORT_PIC2_BASE + I8259_PIC_ADDR_DATA, mask2);
 }
 
+static void intr_enable(void) {
+	asm("sti");
+}
+
 void intr_init(void) {
 	idt_init();
 

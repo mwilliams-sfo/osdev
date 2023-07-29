@@ -1,12 +1,6 @@
 
 .globl intr_handler_table
 
-.globl intr_enable
-.type intr_enable,@function
-intr_enable:
-	sti
-	ret
-
 intr_dispatch:
 	movl intr_handler_table(,%eax,4), %ebx
 	testl %ebx, %ebx
