@@ -1,6 +1,5 @@
 
 .global inpb
-.type inpb,@function
 inpb:
 	push %ebp
 	movl %esp, %ebp
@@ -13,7 +12,6 @@ inpb:
 	ret
 
 .global inpw
-.type inpw,@function
 inpw:
 	push %ebp
 	movl %esp, %ebp
@@ -26,7 +24,6 @@ inpw:
 	ret
 
 .global outb
-.type outb,@function
 outb:
 	push %ebp
 	movl %esp, %ebp
@@ -39,7 +36,6 @@ outb:
 	ret
 
 .global outw
-.type outw,@function
 outw:
 	push %ebp
 	movl %esp, %ebp

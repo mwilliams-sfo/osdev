@@ -7,9 +7,9 @@
 
 static struct idt_entry idt[256];
 
-static void idt_set(int index, void (*addr)()) {
+static void idt_set(int intnum, void (*addr)()) {
 	uint32_t offset = (uint32_t) addr;
-	idt[index] = (struct idt_entry) {
+	idt[intnum] = (struct idt_entry) {
 		.selector = KERNEL_CODE_SELECTOR,
 		.offset_high = offset >> 16,
 		.offset_low = offset,
@@ -25,9 +25,11 @@ static void idt_load(const struct idt_desc * desc) {
 }
 
 void idt_init(void) {
-	extern void (*intr_vector_table[])();
+	extern void intr_vector_base();
+	extern int intr_thunk_size;
 	for (int i = 0; i < sizeof idt / sizeof idt[0]; i++) {
-		idt_set(i, intr_vector_table[i]);
+		void * vector = (char *) intr_vector_base + i * intr_thunk_size;
+		idt_set(i, vector);
 	}
 	idt_load(&(struct idt_desc) {
 		.size = sizeof idt - 1,
