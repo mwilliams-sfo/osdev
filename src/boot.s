@@ -192,26 +192,26 @@ ata_lba28_read_xfer:
 	ret
 
 .macro gdt_ent base, limit, access, flags
-.word (\limit & 0xffff)
-.word (\base & 0xffff)
-.byte ((\base >> 16) & 0xff)
-.byte \access
-.byte (((\flags << 4) & 0xf0) | ((\limit >> 16) & 0xf))
-.byte ((\base >> 24) & 0xff)
+	.word (\limit & 0xffff)
+	.word (\base & 0xffff)
+	.byte ((\base >> 16) & 0xff)
+	.byte \access
+	.byte (((\flags << 4) & 0xf0) | ((\limit >> 16) & 0xf))
+	.byte ((\base >> 24) & 0xff)
 .endm
 
 .align 4
 gdt:
-gdt_ent 0, 0, 0, 0
+	gdt_ent 0, 0, 0, 0
 gdt_code:
-gdt_ent 0, 0xfffff, 0b10011010, 0b1100
+	gdt_ent 0, 0xfffff, 0b10011010, 0b1100
 gdt_data:
-gdt_ent 0, 0xfffff, 0b10010010, 0b1100
+	gdt_ent 0, 0xfffff, 0b10010010, 0b1100
 gdt_end:
 
 gdt_desc:
-.word (gdt_end - gdt - 1)
-.long (boot_base + gdt)
+	.word (gdt_end - gdt - 1)
+	.long (boot_base + gdt)
 
 .org 0x1fe
-.word boot_magic
+	.word boot_magic

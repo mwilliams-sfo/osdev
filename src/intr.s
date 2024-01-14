@@ -25,17 +25,17 @@ intr_dispatch:
 
 .globl intr_vector_base
 intr_vector_base:
-isr_thunk 00
+	isr_thunk 00
 intr_vector_01:
-.irp y,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
-isr_thunk 0\y
-.endr
-.irp x,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
-.irp y,0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
-isr_thunk \x\y
-.endr
-.endr
+	.irp y,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+	isr_thunk 0\y
+	.endr
+	.irp x,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+	.irp y,0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+	isr_thunk \x\y
+	.endr
+	.endr
 
 .globl intr_thunk_size
 intr_thunk_size:
-.long intr_vector_01 - intr_vector_base
+	.long intr_vector_01 - intr_vector_base
